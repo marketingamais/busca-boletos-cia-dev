@@ -1,0 +1,41 @@
+Bom dia, Camilla.
+Tudo bem?
+
+Seguem as instruções para realizar as autenticações nas APIs:
+
+API de Extrações >> https://integracaopp.sponteweb.com.br/index.html?urls.primaryName=V3
+Segue as instruções, usuário e token de acesso.
+
+Usuário: milenanogueira-itz-ma@hotmail.com
+Senha: vPT3KBftA28@Qo8X
+
+O endpoint para autorização é o /api/v3/Auth/login
+A chamada deve ser feita seguindo esse formato:
+{
+  "email": "milenanogueira-itz-ma@hotmail.com",
+  "password": "vPT3KBftA28@Qo8X",
+  "codCliSponte": 8371
+}
+
+ou
+
+{
+  "email": "milenanogueira-itz-ma@hotmail.com",
+  "password": "vPT3KBftA28@Qo8X",
+  "codCliSponte": 70532
+}
+
+A autorização é feita unidade por unidade.
+
+No retorno do endpoint de autorização será recebido um token que deve ser utilizado no header dos demais endpoints, no seguinte formato Bearer + "token de retorno do endpoint /api/v3/Auth/login"
+
+------------------
+
+API REST >> https://webservices.sponteweb.com.br/WSApiSponteRest/swagger/ui/index#/
+
+API KEY das unidades
+8731 = 87E821
+70532 = 0EA64A
+
+Segue um exemplo de requisição e de como utilizar a api key na autenticação:
+curl -X GET --header 'Accept: application/json' --header 'api_key: 87E821' 'https://webservices.sponteweb.com.br/WSApiSponteRest/api/students?active=true'

@@ -1,0 +1,386 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head id="Head1"><link rel="icon" href="favicon.png" type="image/x-icon"><title>SponteNet - Login</title><meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1, user-scalable=0">
+    <!-- <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,800" /> -->
+    <meta charset="utf-8">
+    <!-- Always force latest IE rendering engine or request Chrome Frame -->
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+    <!-- Use title if it's in the page YAML frontmatter -->
+    <link href="Layout/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css"><link rel="stylesheet" type="text/css" href="WebWindow/highslide/highslide.css">
+
+
+    <script src="https://connect.facebook.net/signals/config/479395879497774?v=2.9.324&amp;r=stable&amp;domain=portal.sponteweb.com.br&amp;hme=af8aa31887db259becaf70277daef60bd8bc35c2df82c2acd4258de27ecac4b5&amp;ex_m=104%2C207%2C155%2C22%2C72%2C73%2C146%2C68%2C67%2C11%2C164%2C90%2C16%2C138%2C127%2C39%2C75%2C78%2C134%2C160%2C166%2C8%2C4%2C5%2C7%2C6%2C3%2C91%2C101%2C167%2C172%2C221%2C62%2C188%2C189%2C55%2C279%2C30%2C74%2C233%2C232%2C231%2C23%2C33%2C103%2C61%2C10%2C63%2C97%2C98%2C99%2C105%2C130%2C31%2C29%2C132%2C133%2C129%2C128%2C156%2C76%2C159%2C157%2C158%2C50%2C60%2C123%2C15%2C163%2C45%2C266%2C267%2C265%2C26%2C27%2C28%2C48%2C147%2C77%2C112%2C18%2C20%2C44%2C40%2C42%2C41%2C83%2C92%2C96%2C110%2C145%2C148%2C46%2C111%2C24%2C21%2C119%2C69%2C36%2C150%2C149%2C151%2C142%2C140%2C25%2C35%2C59%2C109%2C162%2C70%2C17%2C153%2C114%2C81%2C66%2C19%2C85%2C86%2C116%2C84%2C136%2C135%2C139%2C161%2C34%2C281%2C297%2C214%2C203%2C204%2C202%2C300%2C291%2C52%2C215%2C107%2C131%2C80%2C121%2C54%2C47%2C49%2C113%2C120%2C126%2C125%2C58%2C64%2C152%2C115%2C37%2C32%2C53%2C56%2C100%2C165%2C1%2C124%2C14%2C122%2C12%2C2%2C57%2C93%2C65%2C118%2C89%2C88%2C168%2C169%2C94%2C95%2C9%2C102%2C51%2C143%2C87%2C79%2C71%2C117%2C106%2C43%2C144%2C0%2C82%2C137%2C141%2C154%2C38%2C108%2C13%2C170" async=""></script><script async="" src="https://connect.facebook.net/en_US/fbevents.js"></script><script src="Layout/javascripts/application.js" type="text/javascript"></script>
+    
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <style type="text/css">
+        .input-prepend label {
+            text-align: left
+        }
+    </style>
+
+    <!-- Facebook Pixel Code -->
+    <script type="text/javascript">
+        !function (f, b, e, v, n, t, s) {
+            if (f.fbq) return; n = f.fbq = function () {
+                n.callMethod ?
+                    n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+            };
+            if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0';
+            n.queue = []; t = b.createElement(e); t.async = !0;
+            t.src = v; s = b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t, s)
+        }(window, document, 'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '479395879497774');
+        fbq('track', 'PageView');
+        fbq('track', 'AlunosTalkers');
+
+        $(document).ready(function () {
+            $('#olvidado').click(function (e) {
+                e.preventDefault();
+                $('div#form-olvidado').toggle('0');
+                $('div#form-olvidado1').css("display", "none");
+                document.getElementById("btnOk").disabled = true;
+
+                if ($('#optAlunodiv').hasClass("checked")) {
+                    $('#btnRecuperarSenha').css("display", "block");
+                    $('#lblProfessor').css("display", "none");
+                    $('#divNumeroMatricula').css("display", "block");
+                    $('#divTxtCpf').css("display", "block");
+                    $('#txtRecuperarSenhaCPF').attr('placeholder', 'CPF');
+                    $('#divTxtEmail').css("display", "block");
+                    $('#spanInfoRecSenha').html('Preencha pelo menos dois campos, dos três disponíveis abaixo:');
+                } else if ($('#optEmpresadiv').hasClass("checked")) {
+                    $('#btnRecuperarSenha').css("display", "block");
+                    $('#lblProfessor').css("display", "none");
+                    $('#divNumeroMatricula').css("display", "none");
+                    $('#divTxtCpf').css("display", "block");
+                    $('#txtRecuperarSenhaCPF').attr('placeholder', 'Informe o CPF ou CNPJ');
+                    $('#divTxtEmail').css("display", "block");
+                    $('#spanInfoRecSenha').html('Preencha os campos abaixo');
+                } else if ($('#optProfessordiv').hasClass("checked")) {
+                    $('#btnRecuperarSenha').css("display", "none");
+                    $('#divNumeroMatricula').css("display", "none");
+                    $('#divTxtCpf').css("display", "none");
+                    $('#divTxtEmail').css("display", "none");
+                    $('#lblProfessor').css("display", "block");
+                } else {
+                    $('#btnRecuperarSenha').css("display", "block");
+                    $('#lblProfessor').css("display", "none");
+                    $('#divNumeroMatricula').css("display", "none");
+                    $('#divTxtCpf').css("display", "block");
+                    $('#divTxtEmail').css("display", "block");
+                    $('#txtRecuperarSenhaCPF').attr('placeholder', 'CPF');
+
+                }
+            });
+            $('#acceso').click(function (e) {
+                e.preventDefault();
+                document.getElementById("btnOk").disabled = false;
+                $('div#form-olvidado1').toggle('0');
+                $('div#form-olvidado').css("display", "none");
+            });
+        });
+
+        function setFocus(e) {
+            if (e.keyCode == 13) {
+                document.getElementById("btnOk").disabled = true;
+                document.getElementById("btnRecuperarSenha").focus();
+                e.preventDefault();
+            }
+        }
+
+        function mascararCPFCNPJ(campo) {
+            let valor = campo.value.replace(/\D/g, '');
+
+            if (valor.length <= 11) {
+                // CPF
+                valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
+                valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
+                valor = valor.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            } else {
+                // CNPJ
+                valor = valor.replace(/^(\d{2})(\d)/, '$1.$2');
+                valor = valor.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+                valor = valor.replace(/\.(\d{3})(\d)/, '.$1/$2');
+                valor = valor.replace(/(\d{4})(\d)/, '$1-$2');
+            }
+
+            campo.value = valor;
+        }
+    </script>
+
+
+    <noscript>
+        <img height="1" width="1" style="display: none" src="https://www.facebook.com/tr?id=479395879497774&ev=PageView&noscript=1" />
+    </noscript>
+    <style>
+        .access-info {
+            font-family: 'Arial', sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            text-align:justify;
+            color: #333;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            max-width: 600px;
+            margin: 20px auto;
+        }
+
+            .access-info a {
+                color: #0066cc;
+                text-decoration: none;
+                font-weight: bold;
+            }
+
+                .access-info a:hover {
+                    text-decoration: underline;
+                    color: #004a99;
+                }
+
+            .access-info b {
+                font-weight: bold;
+                color: #e67e22;
+            }
+    </style>
+    <!-- End Facebook Pixel Code -->
+
+<link href="App_Themes/Default/Default.css" type="text/css" rel="stylesheet"><link type="text/css" rel="stylesheet" href="/WebResource.axd?d=uBIArQ6KSB_kdbRCXD2Hc0h8bRmPE3BkA5Px4pacMLtuYQEjE70G7oLSCO9xh_7wAbEVwDFq35vnT1A2iK0Sn9uxVq090dnFe8PEEvGWrz41&amp;t=639148021400000000"><script language="javascript" type="text/javascript" src="/WebResource.axd?d=B3pv524ECgJ0A2CiYkn4Wt-b2lGT6xcmIN8YuWW_X9WxCpH35h93atQYE3uynbJAWEV-FvFcUcCxlH5pJReEnkxWZw2l6nBxyA3EhAPYq5Q1&amp;t=639148021400000000"></script><style type="text/css">.jqstooltip { position: absolute;left: 0px;top: 0px;visibility: hidden;background: rgb(0, 0, 0) transparent;background-color: rgba(0,0,0,0.6);filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#99000000, endColorstr=#99000000);-ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#99000000, endColorstr=#99000000)";color: white;font: 10px arial, san serif;text-align: left;white-space: nowrap;padding: 5px;border: 1px solid white;z-index: 10000;}.jqsfield { color: white;font: 10px arial, san serif;text-align: left;}</style><style type="text/css">.highslide img {cursor: url(highslide/graphics/zoomin.cur), pointer !important;}</style><script type="text/javascript">AplicaCor('#1E88FF');</script><script type="text/javascript">openWindow(1, 'alterarSenha', 'Redefinição de senha', 'RecuperarSenha.aspx?Cid=8731&alunoID=7073&SenhaFraca=true', true, 770, 820, true, false, false, null);</script><script type="text/javascript">__defaultFired = false;</script><script type="text/javascript">Sys.Application.add_init(function() {
+    $create(Sys.UI._UpdateProgress, {"associatedUpdatePanelId":"updGeral","displayAfter":500,"dynamicLayout":true}, null, null, $get("upgAcessando"));
+});
+</script></head>
+<body>
+    <form name="form1" method="post" action="./SelecionaLogin.aspx?cid=8731" id="form1" class="form">
+<div>
+<input type="hidden" name="ToolkitScriptManager1_HiddenField" id="ToolkitScriptManager1_HiddenField" value="">
+
+
+
+
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+var theForm = document.forms['form1'];
+if (!theForm) {
+    theForm = document.form1;
+}
+function __doPostBack(eventTarget, eventArgument) {
+    if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+        theForm.__EVENTTARGET.value = eventTarget;
+        theForm.__EVENTARGUMENT.value = eventArgument;
+        theForm.submit();
+    }
+}
+//]]>
+</script>
+
+
+<script src="/WebResource.axd?d=pynGkmcFUV13He1Qd6_TZEXVSpuSC_0FaoE-kvlJR-3NQV6heDQIjrNDlR1LevvywqpxSjOp0lhWrKdntGiBjw2&amp;t=638942102819057530" type="text/javascript"></script>
+
+
+<script src="/ScriptResource.axd?d=myY3Two0UxZV16VMBw4qxWQUDDlNnYgK6xWbYvUsuZCfhWO0Che6ZP3INZawjpuP34sp8kHe1oDUpbTZ2AqwxcdOxFosbQDg0QloaVxLxKGZcVaoKmxvbhl4tph6Z5fx0&amp;t=2d550f82" type="text/javascript"></script>
+<script type="text/javascript">
+//<![CDATA[
+if (typeof(Sys) === 'undefined') throw new Error('ASP.NET Ajax client-side framework failed to load.');
+//]]>
+</script>
+
+<script src="/ScriptResource.axd?d=on1t6Pk2_uvvrXX5hXL_DSbfSsHfD6QtaJub8vZbRqNxkas3SIOGfpVMzfK54CnPD0gpK4QZLn88KN_20FEjCGvuRnI2k7_jFC-onIXO948EtBq0t9gyCyGx6Sx2ZbXIW5ralnHcE9djn0jDUki17g2&amp;t=2d550f82" type="text/javascript"></script>
+<script src="WebWindow/highslide/highslide-with-html.js" type="text/javascript"></script>
+<script src="Geral.js" type="text/javascript"></script>
+<script src="JS/SiiimpleToast/index.js" type="text/javascript"></script>
+<script src="WebWindow/dhtmlwindow.js" type="text/javascript"></script><div id="dhtmlwindowholder"><span style="display:none">.</span></div>
+<script src="WebWindow/dhtmlwindowmodal.js" type="text/javascript"></script><div id="interVeil"></div>
+        <script type="text/javascript">
+//<![CDATA[
+Sys.WebForms.PageRequestManager._initialize('ToolkitScriptManager1', 'form1', ['tupdGeral','','tUpdErros',''], ['btnOk',''], [], 90, '');
+//]]>
+</script>
+
+        <div class="navbar navbar-top navbar-inverse custom" style="background-color: rgb(30, 136, 255);">
+            <div class="navbar-inner">
+                <div style="text-align: center; width: 100%; color: White; font-size: 20px; font-weight: bold; margin: 5px 0px 0px 5px">
+                    <span id="lblTopo" class="title">CIA - Curso de Inglês Acessível </span>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="span4 offset4">
+                <div class="padded">
+                    <div class="login">
+                    </div>
+                    <div class="login box" style="margin-top: 10px;">
+                        <div class="box-header">
+                            <span id="lblTitulo" class="title">SponteNet - Login</span>
+                        </div>
+                        <div class="box-content padded" id="form-olvidado1">
+                            <div class="separate-sections">
+                                <div id="divOpcaoAcesso" class="input-prepend">
+                                    <div id="optAlunodiv" runat="server" class="iradio_flat-aero checked" style="position: relative;"><input value="optAluno" name="Optlogin" type="radio" id="optAluno" class="icheck" checked="checked" style="position: absolute; opacity: 0;"><ins class="iCheck-helper" style="position: absolute; top: 0%; left: 0%; display: block; width: 100%; height: 100%; margin: 0px; padding: 0px; background: rgb(255, 255, 255); border: 0px; opacity: 0;"></ins></div>
+                                    <label for="optAluno" style="min-width: 45px">
+                                        Aluno
+                                    </label>
+                                    <div id="optResponsaveldiv" runat="server" class="iradio_flat-aero" style="position: relative;"><input value="optResponsavel" name="Optlogin" type="radio" id="optResponsavel" class="icheck" style="position: absolute; opacity: 0;"><ins class="iCheck-helper" style="position: absolute; top: 0%; left: 0%; display: block; width: 100%; height: 100%; margin: 0px; padding: 0px; background: rgb(255, 255, 255); border: 0px; opacity: 0;"></ins></div>
+                                    <label for="optResponsavel" style="min-width: 85px">
+                                        Responsável</label>
+                                    <div id="optEmpresadiv" runat="server" class="iradio_flat-aero" style="position: relative;"><input value="optEmpresa" name="Optlogin" type="radio" id="optEmpresa" class="icheck" style="position: absolute; opacity: 0;"><ins class="iCheck-helper" style="position: absolute; top: 0%; left: 0%; display: block; width: 100%; height: 100%; margin: 0px; padding: 0px; background: rgb(255, 255, 255); border: 0px; opacity: 0;"></ins></div>
+                                    <label for="optEmpresa" style="min-width: 60px">
+                                        Empresa</label>
+                                    
+                                    
+                                </div>
+                                <div id="updGeral" st="">
+                                        <div class="separate-sections" style="margin-bottom: 0px !important;">
+                                            <div class="input-prepend">
+                                                <span class="add-on" href="#"><i class="icon-user"></i></span>
+                                                <input name="txtLogin" type="text" value="5866" id="txtLogin" class="form-control" placeholder="Login" required="">
+                                            </div>
+                                            <div class="input-prepend">
+                                                <span class="add-on" href="#"><i class="icon-key"></i></span>
+                                                <input name="txtSenha" type="password" id="txtSenha" class="form-control" placeholder="Senha" required="">
+                                            </div>
+                                            <div>
+                                                <input type="submit" name="btnOk" value="Entrar" onclick="$('#divAlerta').css('display','none'); return true;" id="btnOk" class="btn btn-custom btn-block" style="background: linear-gradient(rgb(0, 118, 227), rgb(63, 154, 255)); border: 1px solid rgb(30, 136, 255); box-shadow: rgb(30, 136, 255) 0px 1px 2px inset;">
+                                                <div id="upgAcessando" style="display:none;" role="status" aria-hidden="true">
+	
+                                                        <div style="text-align: right">
+                                                            <span class="spinner" style="color: #3e92c3;"><i class="icon-spin icon-refresh"></i>
+                                                            </span><span style="font-weight: 300; font-size: 18px; color: #3e92c3;">Efetuando Login
+                                                            ...</span>
+                                                        </div>
+                                                    
+</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <div style="min-height:5px;">
+                                    <a class="pull-right text-muted" id="olvidado" style=""><small>Esqueceu a Senha?</small></a>
+                                </div>
+                                <div id="UpdErros">
+	
+                                        <div id="div2" class="alert-danger" style="display: none; margin-top: 25px;">
+                                            <a class="close" data-dismiss="alert" href="#">×</a>
+                                            <span id="Label1"></span>
+                                        </div>
+                                        <div id="divAlertaSucesso" class="alert-info" style="display: none; margin-top: 25px;">
+                                            <a class="close" data-dismiss="alert" href="#">×</a>
+                                            <span id="lblMsgSucesso"></span>
+                                        </div>
+                                        <div id="divAlerta" class="alert-danger" style="display: none; margin-top: 25px;">
+                                            <a class="close" data-dismiss="alert" href="#">×</a>
+                                            <span id="lblMsg"></span>
+                                        </div>
+                                    
+</div>
+                                <div id="div1" class="row-fluid" style="text-align: center;">
+                                    <span class="text-white">* Em caso de dúvidas durante o acesso ao Portal do Aluno (login ou senha inválidos),
+                                         <a id="HyperLink1" href="https://www.sponte.com.br/como-acessar-o-portal-do-aluno-sponte-ou-o-app-sponte-agenda/" target="_blank">clique aqui</a>.
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="separate-sections">
+                                <div style="float: left">
+                                    <img id="Image1" src="App_Themes/Default/images/logosponte.png" style="border-width:0px;max-height: 80px; max-width: 100px;">
+                                </div>
+                                <div style="text-align: right">
+                                    <span id="lblEscola">CIA - Curso de Inglês Acessível </span>
+                                    <br>
+                                    <span id="lblEndereco">Av. Bernardo Sayão</span>
+                                    <br>
+                                    <span id="lblTelefone">98234-9427</span>
+                                    <br>
+                                    <span id="lblEmail">ciaingles@hotmail.com</span>
+                                </div>
+                                <hr>
+                                <div id="divPreCadastro" class="row-fluid" style="text-align: center; margin-top: 15px">
+                                    <a id="lnkMatricula" href="Matricula.aspx?CID=8731">Novo Aluno? Pré-Cadastro</a>
+                                </div>
+                                <div class="row-fluid" style="text-align: center; margin-top: 15px; display: none">
+                                    
+                                </div>
+                                <div id="divPolitica" class="row-fluid" style="text-align: center; margin-top: 15px">
+                                    <a id="lnkPolitica" href="https://www.sponte.com.br/politica-de-privacidade" target="_blank">Política de Privacidade</a>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- Redefinição de senha -->
+
+                        <div style="display: none; padding: 10px;" id="form-olvidado">
+                            <asp:updatepanel>
+                                <contenttemplate>
+                                    <h4 class="">Esqueceu sua senha?
+                                    </h4>
+                                    
+                                        <fieldset>
+                                            <span id="spanInfoRecSenha" class="help-block">Preencha pelo menos dois campos, dos
+                                            três disponíveis abaixo:</span>
+                                            <div class="form-group input-group">
+                                                <div id="divNumeroMatricula" class="form-group input-prepend">
+                                                    <span class="add-on"><i class="icon-user"></i></span>
+                                                    <input name="txtRecuperarSenhaNumeroMatricula" type="text" id="txtRecuperarSenhaNumeroMatricula" class="form-control" placeholder="Número de Matrícula" onkeypress="setFocus(event)">
+                                                </div>
+                                                <div class="form-group input-prepend" style="margin-top: 10px;" id="divTxtCpf">
+                                                    <span class="add-on"><i class="icon-credit-card"></i></span>
+                                                    <input name="txtRecuperarSenhaCPF" type="text" maxlength="18" id="txtRecuperarSenhaCPF" placeholder="CPF" class="cpf" oninput="mascararCPFCNPJ(this)" onfocus="try{$(this).setSelection(0, 0)} catch (Error) { };" style="width:98%;">
+                                                </div>
+                                                <div class="form-group input-prepend" style="margin-top: 10px;" id="divTxtEmail">
+                                                    <span class="add-on"><i class="icon-envelope"></i></span>
+                                                    <input name="txtRecuperarSenhaEmail" type="text" id="txtRecuperarSenhaEmail" class="form-control" placeholder="E-mail" onkeypress="setFocus(event)">
+                                                </div>
+
+                                                <label class="access-info" id="lblProfessor" style="display: none;">
+                                                    Seus dados de acesso são os mesmos do SponteWeb.
+                                                    Caso não se lembre da sua senha, <a href="https://www.sponteweb.com.br/Default.aspx">Clique aqui</a>⁠ e, em seguida, selecione <b>'Esqueci minha senha'</b>.<br>
+                                                    Se preferir, você também pode solicitar ao administrador do sistema que altere seus dados de acesso.
+                                                </label>
+                                            </div>
+                                            <div style="margin-top: 15px;">
+                                                <input type="button" name="btnRecuperarSenha" value="Continue" onclick="javascript:__doPostBack('btnRecuperarSenha','')" id="btnRecuperarSenha" class="btn btn-custom btn-block" style="background: linear-gradient(rgb(0, 118, 227), rgb(63, 154, 255)); border: 1px solid rgb(0, 118, 227); box-shadow: rgb(30, 136, 255) 0px 1px 2px inset;">
+                                            </div>
+                                            <p class="help-block" style="margin-top: 10px;">
+                                                <a class="text-muted" href="#" id="acceso"><small>Voltar ao Login</small></a>
+                                            </p>
+                                            <div id="divAlerta1" class="alert-danger" style="display: none">
+                                                <a class="close" data-dismiss="alert" href="#">×</a>
+                                                <span id="lblMsgRecuperarSenha"></span>
+                                            </div>
+                                        </fieldset>
+                                    
+                                </contenttemplate>
+                                <triggers>
+                                    <asp:asyncpostbacktrigger controlid="btnRecuperarSenha" eventname="Click">
+                                </asp:asyncpostbacktrigger></triggers>
+                            </asp:updatepanel>
+                        </div>
+
+                    </div>
+                    <div id="DivFooterMobile" class="row" style="float: right; margin-top: -15px">
+                        <span style="font-size: 7pt">Todos os direitos reservados </span>
+                        <img src="images/logo_3.png" alt="Sponte software e serviços" title="Sponte" style="max-height: 15px;">
+                        
+                    </div>
+
+                </div>
+            </div>
+        </div><span style="display: none !important;"><input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value=""></span><span style="display: none !important;"><input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value=""></span><span style="display: none !important;"><input type="hidden" name="__VIEWSTATE_KEY" id="__VIEWSTATE_KEY" value="VS_3cfcbbbb-1a88-4019-8bcc-46cf4980ddef_639150592961417132"></span><span style="display: none !important;"><input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value=""></span></form>
+    
+
+<script type="text/javascript">
+//<![CDATA[
+AplicaCor('#1E88FF');//]]>
+</script>
+<link rel="shortcut icon" type="image/x-icon" href="/Default">
+<script type="text/javascript">
+//<![CDATA[
+(function() {var fn = function() {$get("ToolkitScriptManager1_HiddenField").value = '';Sys.Application.remove_init(fn);};Sys.Application.add_init(fn);})();fixDefaultButton();altShortcuts = [''];__defaultFired = false;Sys.Application.add_init(function() {
+    $create(Sys.UI._UpdateProgress, {"associatedUpdatePanelId":"updGeral","displayAfter":500,"dynamicLayout":true}, null, null, $get("upgAcessando"));
+});
+//]]>
+</script>
+
+
+
+<div class="ex-tooltip"></div><div id="galleryOverlay" style="display: none;"><div id="gallerySlider"></div><a id="prevArrow"><i class="icon-angle-left icon-4x"></i></a><a id="nextArrow"><i class="icon-angle-right icon-4x"></i></a></div><div class="highslide-container" style="padding: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; margin: 0px; position: absolute; left: 0px; top: 0px; width: 100%; z-index: 100002; direction: ltr;"><a class="highslide-loading" title="Clique para cancelar" href="javascript:;" style="position: absolute; top: -9999px; opacity: 0.75; z-index: 1;">Carregando ...</a><div style="display: none;"></div><table cellspacing="0" style="padding: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; margin: 0px; visibility: hidden; position: absolute; border-collapse: collapse; width: 0px;"><tbody style="padding: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; margin: 0px;"><tr style="padding: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; margin: 0px; height: auto;"><td style="padding: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; margin: 0px; line-height: 0; font-size: 0px;"></td><td style="padding: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; margin: 0px; line-height: 0; font-size: 0px;"></td><td style="padding: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; margin: 0px; line-height: 0; font-size: 0px;"></td></tr><tr style="padding: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; margin: 0px; height: auto;"><td style="padding: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; margin: 0px; line-height: 0; font-size: 0px;"></td><td class="drop-shadow highslide-outline" style="padding: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; margin: 0px; position: relative;"></td><td style="padding: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; margin: 0px; line-height: 0; font-size: 0px;"></td></tr><tr style="padding: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; margin: 0px; height: auto;"><td style="padding: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; margin: 0px; line-height: 0; font-size: 0px;"></td><td style="padding: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; margin: 0px; line-height: 0; font-size: 0px;"></td><td style="padding: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; margin: 0px; line-height: 0; font-size: 0px;"></td></tr></tbody></table><img src="highslide/graphics/outlines/drop-shadow.png" style="padding: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; margin: 0px; position: absolute; top: -9999px;"><a class=" highslide-active-anchor" style="display: none;"></a><div id="highslide-wrapper-0" class="draggable-header no-footer" style="padding: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; margin: 0px; visibility: visible; position: absolute; z-index: 100003; left: 268px; top: 15px; width: 830px; height: 770px;"><div class="highslide-html" style="position: relative; z-index: 3; overflow: hidden; width: 830px; height: 770px; left: 0px; top: 0px; visibility: visible;"><div style="padding: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; margin: 0px; position: relative; width: 830px; left: 0px; top: 0px;"><div class="highslide-html-content" style="position: relative; display: block; direction: ltr; width: auto; height: auto; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; visibility: visible;"><div class="highslide-header"><ul><li class="highslide-previous"><a href="#" title="Anterior (arrow left)" onclick="return hs.previous(this)"><span>Anterior</span></a></li><li class="highslide-next"><a href="#" title="Pr�ximo (arrow right)" onclick="return hs.next(this)"><span>Pr�ximo</span></a></li><li class="highslide-move"><a href="#" title="Mover" onclick="return false"><span>Mover</span></a></li><li class="highslide-close"><a href="#" title="Fechar" onclick="return hs.close(this)"><span>Fechar</span></a></li></ul></div><div class="highslide-body" style="width: 820px; height: 740px;"><div style="padding: 1px 0px 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; margin: 0px; clear: both;"></div><iframe name="hs1779473301090" frameborder="0" key="0" allowtransparency="true" style="width: 820px; height: 740px;" src="RecuperarSenha.aspx?Cid=8731&amp;alunoID=7073&amp;SenhaFraca=true"></iframe></div><div class="highslide-footer"><div><span class="highslide-resize" title="Redimensionar"><span></span></span></div></div></div></div></div><div class="" style="padding: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; margin: 0px; position: absolute; width: 830px; height: 770px; visibility: visible; overflow: visible; top: 0px; left: 0px;"><div id="hsId0" style="padding: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; margin: 0px; position: absolute; visibility: visible; width: auto; direction: ltr; opacity: 1; left: 0px; right: 0px; bottom: 100%; z-index: 4;"><div class="highslide-heading highslide-move" style="display: block;">Redefinição de senha</div></div><div id="hsId1" style="padding: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; margin: 0px; position: absolute; visibility: visible; width: auto; direction: ltr; opacity: 1; left: 0px; top: 0px; z-index: 4;"><a href="" class="highslide-credits" title="" style="display: block;"></a></div></div></div></div></body></html>

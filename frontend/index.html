@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Busca de Boletos</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/logo-cia.png">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Tabler Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Left Panel -->
+        <div class="left-panel">
+            <header class="header">
+                <img src="assets/logo-cia.png" alt="CIA" class="logo logo-cia">
+            </header>
+
+            <main class="main-content">
+                <h1 class="headline" id="headline">Seja bem-vindo(a) ao sistema de consulta de boletos do CIA!</h1>
+                <p class="subtitle">Encontre suas parcelas em aberto de forma rápida e segura.</p>
+                
+                <form id="buscaForm" class="form-container">
+                    <div class="input-group">
+                        <label for="cpf">Digite o seu CPF</label>
+                        <input type="text" id="cpf" class="input-pill" placeholder="000.000.000-00" required maxlength="14">
+                        <span class="error-message hidden" id="cpfError">CPF inválido</span>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary pill-shape">
+                        <i class="ph ph-magnifying-glass"></i>
+                        Consultar
+                    </button>
+                </form>
+            </main>
+            
+            <footer class="footer">
+                <a href="https://wa.me/5581985009050?text=Ol%C3%A1%2C%20gostaria%20de%20saber%20mais%20sobre%20o%20FlowIQ%21" target="_blank" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: inherit; cursor: pointer;">
+                    <span>Potencializado por</span>
+                    <img src="assets/Logo FLOWIQ@4x.png" alt="FLOWIQ" class="logo-flowiq">
+                </a>
+            </footer>
+        </div>
+
+        <!-- Right Panel (Carousel) -->
+        <div class="right-panel">
+            <div class="carousel-container">
+                <div class="carousel-track">
+                    <img src="assets/IMAGE-CIA-1.jpg" alt="Carousel Image 1">
+                    <img src="assets/IMAGE-CIA-2.jpg" alt="Carousel Image 2">
+                    <img src="assets/IMAGE-CIA-3.png" alt="Carousel Image 3">
+                </div>
+                <div class="carousel-indicators">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Loading -->
+    <div id="modalLoading" class="modal-overlay hidden" style="background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);">
+        <div class="modal-loading-content">
+            <!-- Coluna Esquerda: Loading do Sistema -->
+            <div class="loading-side">
+                <div class="spinner"></div>
+                <p id="loadingText" style="margin-bottom: 0; font-weight: 500;">Buscando suas informações...</p>
+            </div>
+            
+            <!-- Coluna Direita: Mini-game -->
+            <div class="game-side">
+                <!-- Tela Inicial do Game -->
+                <div id="gameStartScreen" class="game-screen">
+                    <i class="ph ph-graduation-cap game-icon"></i>
+                    <h3 class="game-title">Que tal praticar seu inglês enquanto buscamos seu boleto?</h3>
+                    <p class="game-subtitle">Atividades rápidas para você não perder tempo.</p>
+                    <button class="btn-game-start" onclick="startGame()">Iniciar</button>
+                </div>
+                
+                <!-- Tela Ativa do Game -->
+                <div id="gameActiveScreen" class="game-screen hidden">
+                    <div class="game-progress-container">
+                        <div id="gameProgressBar" class="game-progress-bar"></div>
+                    </div>
+                    <p id="gameCounter" class="game-counter">Atividade 1 de 15</p>
+                    
+                    <div id="gameActivityContent" class="game-activity-content">
+                        <!-- Renderizado via JS -->
+                    </div>
+                </div>
+                
+                <!-- Tela Conclusão do Game -->
+                <div id="gameEndScreen" class="game-screen hidden">
+                    <i class="ph ph-trophy game-icon-large"></i>
+                    <h3 class="game-title">Incrível! Você concluiu todas as atividades.</h3>
+                    <p class="game-subtitle">Continue praticando para evoluir no inglês.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Timeout -->
+    <div id="modalTimeout" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button class="btn-close-icon" onclick="closeModal('modalTimeout')">
+                <i class="ph ph-x"></i>
+            </button>
+            <div class="modal-icon warning">
+                <i class="ph ph-clock"></i>
+            </div>
+            <h2>Sistema Lento</h2>
+            <p id="textoTimeout">Desculpe! O sistema está com uma alta demanda ou demorando muito para responder no momento. Por favor, tente novamente!</p>
+            <button class="btn-primary pill-shape mt-4" style="margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="closeModal('modalTimeout'); document.getElementById('buscaForm').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));">
+                <i class="ph ph-arrows-clockwise"></i> Tentar Novamente
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Negociar (> 5 dias) -->
+    <div id="modalNegociar" class="modal-overlay hidden">
+        <div class="modal-content large">
+            <button class="btn-close-icon" onclick="closeModal('modalNegociar')">
+                <i class="ph ph-x"></i>
+            </button>
+            <div class="modal-icon warning">
+                <i class="ph ph-warning-circle"></i>
+            </div>
+            <h2 id="tituloNegociar">Atenção</h2>
+            <p id="textoNegociar">Você está com mais de 5 dias de atraso, entre em contato com a Amais para regularizar os seus débitos.</p>
+            
+            <div class="modal-actions-col">
+                <a href="https://wa.me/5508008860663?text=Gostaria%20de%20negociar%20meus%20d%C3%A9bitos%20do%20CIA!" id="btnWhatsApp" target="_blank" class="btn-whatsapp pill-shape">
+                    <i class="ti ti-brand-whatsapp"></i>
+                    Entrar em contato com a Amais
+                </a>
+                <a href="https://amais.io/negociar" target="_blank" class="btn-secondary pill-shape">
+                    Acessar portal de negociações
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Em Dia (0 dias) -->
+    <div id="modalEmDia" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button class="btn-close-icon" onclick="closeModal('modalEmDia')">
+                <i class="ph ph-x"></i>
+            </button>
+            <div class="modal-icon success">
+                <i class="ph ph-check-circle"></i>
+            </div>
+            <h2 id="tituloEmDia">Você está em dia!</h2>
+            <p id="textoEmDia">Não encontramos nenhuma parcela em atraso.</p>
+            
+            <button id="btnQueroPagarProximo" class="btn-primary pill-shape mt-4" style="margin: 0 auto;">
+                Quero pagar o próximo boleto
+            </button>
+        </div>
+    </div>
+
+    <!-- Tela Lista Boletos (<= 5 dias) -->
+    <div id="telaBoletos" class="screen-overlay hidden">
+        <div class="screen-content" style="position: relative; text-align: center;">
+            <button class="btn-close-icon" onclick="closeBoletosScreen()">
+                <i class="ph ph-x"></i>
+            </button>
+            
+            <h2 class="screen-title" id="tituloPagarAtrasados">Seus Boletos Vencidos</h2>
+            
+            <div id="boletosList" class="boletos-list">
+                <!-- Preenchido via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Popup Linha Digitável -->
+    <div id="modalLinhaDigitavel" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button class="btn-close-icon" onclick="closeModal('modalLinhaDigitavel')">
+                <i class="ph ph-x"></i>
+            </button>
+            
+            <h3 class="mb-2">Próximo Boleto</h3>
+            <div id="infoProximoBoleto" class="mb-4 text-sm text-gray-600 hidden">
+                <p><strong>Parcela:</strong> <span id="numParcelaProximo"></span></p>
+                <p><strong>Vencimento:</strong> <span id="dataVencimentoProximo"></span></p>
+            </div>
+            
+            <h4 class="mb-2 text-sm font-semibold">Linha digitável:</h4>
+            <div class="linha-digitavel-box">
+                <span id="linhaTexto">00000.00000 00000.000000 00000.000000 0 00000000000000</span>
+                <button id="btnCopiarLinha" class="btn-icon" title="Copiar">
+                    <i class="ph ph-copy"></i>
+                </button>
+            </div>
+            <p id="copyFeedback" class="copy-feedback hidden">Copiado com sucesso!</p>
+        </div>
+    </div>
+
+    <!-- Modal Sem Senha -->
+    <div id="modalSemSenha" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button class="btn-close-icon" onclick="closeModal('modalSemSenha')">
+                <i class="ph ph-x"></i>
+            </button>
+            <div class="modal-icon warning">
+                <i class="ph ph-warning-circle"></i>
+            </div>
+            <h2>Atenção</h2>
+            <p>Você ainda não tem uma senha cadastrada no Sponte, entre em contato com nosso suporte para fazer o cadastro da sua senha e tente novamente</p>
+            
+            <a href="https://wa.me/5599981095341?text=Ol%C3%A1%2C%20tentei%20buscar%20meu%20boleto%20pelo%20sistema%20do%20CIA%20e%20n%C3%A3o%20consegui." target="_blank" class="btn-whatsapp pill-shape mt-4 mb-2" style="display: flex; justify-content: center; align-items: center;">
+                <i class="ti ti-brand-whatsapp"></i> Falar com Suporte
+            </a>
+        </div>
+    </div>
+
+    <!-- Modal CPF Não Encontrado -->
+    <div id="modalCpfNaoEncontrado" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button class="btn-close-icon" onclick="closeModal('modalCpfNaoEncontrado')">
+                <i class="ph ph-x"></i>
+            </button>
+            <div class="modal-icon warning">
+                <i class="ph ph-x-circle"></i>
+            </div>
+            <h2>Matrícula não encontrada!</h2>
+            <p>Não encontramos nenhuma matrícula com esse CPF em nenhuma de nossas unidades. Verifique se o número está correto ou entre em contato com nossa secretaria.</p>
+            
+            <a href="https://wa.me/5599981095341?text=Ol%C3%A1%2C%20tentei%20buscar%20meu%20boleto%20pelo%20sistema%20do%20CIA%20e%20n%C3%A3o%20consegui." target="_blank" class="btn-whatsapp pill-shape mt-4 mb-2" style="display: flex; justify-content: center; align-items: center;">
+                <i class="ti ti-brand-whatsapp"></i> Falar com Suporte
+            </a>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

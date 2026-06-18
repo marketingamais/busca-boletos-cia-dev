@@ -1,0 +1,101 @@
+{
+  "name": "Busca Boletos Front API",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "buscar-boletos",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook POST",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "buscar-boletos"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.item.json.body || {};\nconst cpf = body.cpf || '';\nconst nome = body.nome || '';\n\n// TODO: Substituir essa lógica por uma busca real no seu banco/API\n// usando o CPF para descobrir o Login e Senha.\n\nreturn [{ json: {\n  cpf,\n  nome,\n  cid: 8731,\n  login: '5866', // MOCK\n  senha: '515615' // MOCK\n} }];"
+      },
+      "id": "set-credentials",
+      "name": "Recuperar Credenciais",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://rob-sponte.onrender.com/extrair-boleto?cid=' + $json.cid + '&login=' + $json.login + '&senha=' + encodeURIComponent($json.senha) }}",
+        "sendHeaders": false,
+        "options": {}
+      },
+      "id": "http-render-api",
+      "name": "Chamar Robô Puppeteer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.webhookResponse",
+      "typeVersion": 1,
+      "position": [
+        600,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook POST": {
+      "main": [
+        [
+          {
+            "node": "Recuperar Credenciais",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recuperar Credenciais": {
+      "main": [
+        [
+          {
+            "node": "Chamar Robô Puppeteer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chamar Robô Puppeteer": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

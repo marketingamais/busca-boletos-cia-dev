@@ -1,0 +1,396 @@
+{
+  "name": "Busca de Boletos SPONTE (Webhook Front)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "buscar-boletos-novo",
+        "responseMode": "lastNode",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "POST, OPTIONS"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type"
+              }
+            ]
+          }
+        }
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook POST Frontend",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        0,
+        200
+      ],
+      "webhookId": "buscar-boletos"
+    },
+    {
+      "parameters": {
+        "httpMethod": "OPTIONS",
+        "path": "buscar-boletos-novo",
+        "responseMode": "onReceived",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "POST, OPTIONS"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type"
+              }
+            ]
+          }
+        }
+      },
+      "id": "webhook-options",
+      "name": "Webhook OPTIONS CORS",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "buscar-boletos-options"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body || {};\nconst cpf = (body.cpf || '').toString().replace(/\\D/g, '');\nif (cpf.length !== 11) {\n    return [{ json: { error: true, message: 'CPF invalido' } }];\n}\nlet formattedCpf = cpf.replace(/(\\d{3})(\\d{3})(\\d{3})(\\d{2})/, \"$1.$2.$3-$4\");\nreturn [{ json: { cpf: formattedCpf, error: false } }];"
+      },
+      "id": "validar-cpf",
+      "name": "Validar CPF",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        200,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.error ? 'true' : 'false' }}",
+              "value2": "true",
+              "operation": "equal"
+            }
+          ]
+        }
+      },
+      "id": "if-cpf-invalido",
+      "name": "CPF Invalido",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        400,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { status: 'erro', message: 'CPF invalido fornecido.' } }];"
+      },
+      "id": "resposta-cpf-invalido",
+      "name": "Retornar Erro CPF",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://webservices.sponteweb.com.br/WSApiSponteRest/api/students?CPF=' + $json.cpf }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_key",
+              "value": "87E821"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "ignoreResponseCode": true
+        }
+      },
+      "id": "buscar-8731",
+      "name": "Buscar Alunos 8731",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        600,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://webservices.sponteweb.com.br/WSApiSponteRest/api/students?CPF=' + $('Validar CPF').first().json.cpf }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_key",
+              "value": "0EA64A"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "ignoreResponseCode": true
+        }
+      },
+      "id": "buscar-70532",
+      "name": "Buscar Alunos 70532",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        800,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "let res8731 = $('Buscar Alunos 8731').first().json || {};\nlet res70532 = $('Buscar Alunos 70532').first().json || {};\nlet alunos8731 = res8731.value || res8731 || [];\nif (!Array.isArray(alunos8731)) alunos8731 = [alunos8731];\nlet alunos70532 = res70532.value || res70532 || [];\nif (!Array.isArray(alunos70532)) alunos70532 = [alunos70532];\nlet result = [];\nfor (let a of alunos8731) {\n    if (a.student_id) result.push({ json: { alunoId: a.student_id, escola_id: '8731', escola: 'CIA (8731)', nome: a.name, login: a.spontenet_username, senha: encodeURIComponent(a.spontenet_password) } });\n}\nfor (let a of alunos70532) {\n    if (a.student_id) result.push({ json: { alunoId: a.student_id, escola_id: '70532', escola: 'CIA KIDS (70532)', nome: a.name, login: a.spontenet_username, senha: encodeURIComponent(a.spontenet_password) } });\n}\nif (result.length === 0) return [{ json: { escola_id: 'vazio', error: true } }];\nreturn result;"
+      },
+      "id": "agrupar-alunos",
+      "name": "Agrupar Alunos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.escola_id }}",
+              "value2": "vazio",
+              "operation": "equal"
+            }
+          ]
+        }
+      },
+      "id": "achou-alunos",
+      "name": "Nao Encontrou Alunos",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://rob-sponte.onrender.com/extrair-boleto?cid=' + $json.escola_id + '&login=' + $json.login + '&senha=' + $json.senha }}",
+        "sendHeaders": false,
+        "options": {
+          "ignoreResponseCode": true,
+          "timeout": 100000
+        }
+      },
+      "id": "chamar-rpa",
+      "name": "Chamar Robo Puppeteer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1400,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { status: 'erro', message: 'Nao encontramos nenhum aluno com esse CPF em nenhuma das nossas escolas.' } }];"
+      },
+      "id": "resposta-nao-encontrado",
+      "name": "Nao Encontrado Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1400,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { } }];"
+      },
+      "id": "resposta-cors",
+      "name": "Resposta CORS",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nlet nomeCompleto = 'Aluno';\ntry {\n  const agruparItems = $items('Agrupar Alunos');\n  if (agruparItems && agruparItems.length > 0) {\n    nomeCompleto = agruparItems[0].json.nome || 'Aluno';\n  }\n} catch(e) {}\nfor (let item of items) {\n  let response = item.json || {};\n  const partes = nomeCompleto.split(' ');\n  response.nomeFormatado = partes.length > 1 ? partes[0] + ' ' + partes[1] : partes[0];\n  item.json = response;\n}\nreturn items;"
+      },
+      "id": "injetar-nome",
+      "name": "Injetar Nome",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        200
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook POST Frontend": {
+      "main": [
+        [
+          {
+            "node": "Validar CPF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar CPF": {
+      "main": [
+        [
+          {
+            "node": "CPF Invalido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CPF Invalido": {
+      "main": [
+        [
+          {
+            "node": "Retornar Erro CPF",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Buscar Alunos 8731",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Alunos 8731": {
+      "main": [
+        [
+          {
+            "node": "Buscar Alunos 70532",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Alunos 70532": {
+      "main": [
+        [
+          {
+            "node": "Agrupar Alunos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agrupar Alunos": {
+      "main": [
+        [
+          {
+            "node": "Nao Encontrou Alunos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Nao Encontrou Alunos": {
+      "main": [
+        [
+          {
+            "node": "Nao Encontrado Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Chamar Robo Puppeteer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook OPTIONS CORS": {
+      "main": [
+        [
+          {
+            "node": "Resposta CORS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Injetar Nome": {
+      "main": [
+        [
+          {
+            "node": "Webhook POST Frontend"
+          }
+        ]
+      ]
+    },
+    "Chamar Robo Puppeteer": {
+      "main": [
+        [
+          {
+            "node": "Injetar Nome",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

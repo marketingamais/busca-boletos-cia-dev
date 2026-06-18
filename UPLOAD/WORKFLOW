@@ -1,0 +1,21 @@
+Landing Page com formulário solicitando o CPF do usuário    
+└── Valida CPF
+    ├── Inválido → Retorna para o usuário que o CPF é inválido (em um POP-UP)
+    └── Válido
+         ↓
+        Fara a busca no meu sistema (Sponte)
+                         ├── É ALUNO → Prepara IDs
+                         └── NÃO É ALUNO
+                                ↓
+                         Verifica se é responsável
+                                ├── NÃO ENCONTRADO → Retorna para o usuário que o CPF não foi encontrado na Base de Dados
+                                └── É RESPONSÁVEL → Prepara IDs (todos os alunos vinculados)
+                                        ↓
+                         Fara a busca dos boletos do aluno ou responsável no meu sistema (Sponte)
+                                        ↓
+                         Agrega + Filtra pendentes + Calcula dias
+                                        ↓
+                                Switch de resultado"
+                                 ├── Nenhum boleto → Retorna para o usuário em um pop-up "você está em dia!"
+                                 ├── Enviáveis (≤5 dias) → Retorna um POP-UP com todos os boletos e um botão ao lado "Ver boleto", ao clicar irá abrir um pop-up para copiar a linha digitável do respectivo boleto
+                                 └── Só Amais (≥6 dias) → Retornar um POP-UP com a mensagem "O seu débito agora é de responsabilidade da Amais. Entre em contato: 0800 886 0663"

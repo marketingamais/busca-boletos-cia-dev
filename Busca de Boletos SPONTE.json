@@ -1,0 +1,304 @@
+{
+  "name": "Busca de Boletos SPONTE",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "const cpf = ($input.first().json['CPF'] || '').toString().replace(/\\D/g, '');\nif (cpf.length !== 11) throw new Error('CPF inválido: informe 11 dígitos. Recebido: ' + cpf);\nreturn [{ json: { cpf } }];"
+      },
+      "id": "46542124-aa47-4628-9722-78d5338c51f3",
+      "name": "Validar CPF",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2496,
+        -192
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const token = $input.item.json.accessToken || $input.item.json.token || $input.item.json.access_token || '';\nlet cpf = $('Validar CPF').first().json.cpf;\ncpf = cpf.replace(/(\\d{3})(\\d{3})(\\d{3})(\\d{2})/, \"$1.$2.$3-$4\");\nconst codCli = 8371;\nconst apiKey = '87E821';\nreturn [{ json: { token, cpf, codCli, apiKey } }];"
+      },
+      "id": "452ce9f6-dc1e-4433-8c29-16fc1bd1a715",
+      "name": "Preparar Vars",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1488,
+        -96
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ 'https://webservices.sponteweb.com.br/WSApiSponteRest/api/students?cpf=' + $json.cpf }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_key",
+              "value": "={{ $json.apiKey }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "cf25fd74-2c2b-4516-ad5f-9a00fee95c29",
+      "name": "Buscar Aluno V1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -1296,
+        -96
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "let alunos = $input.item.json;\nif (!Array.isArray(alunos)) alunos = [alunos];\nconst aluno = alunos.find(a => a && a.student_id);\nreturn [{ json: {\n  alunoId: aluno ? aluno.student_id : null,\n  token: $('Preparar Vars').first().json.token\n} }];"
+      },
+      "id": "6784e9b3-4be4-4e28-88d7-9ed0d39e9200",
+      "name": "Extrair AlunoID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1088,
+        -96
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.alunoId }}",
+              "operation": "larger",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "id": "2af5fa58-5c20-4274-a95b-58b328aa52ed",
+      "name": "Aluno Encontrado?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -896,
+        -96
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ 'https://integracaopp.sponteweb.com.br/api/v3/ContasReceber?AlunoID=' + $json.alunoId + '&Situacao=0' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $json.token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "de732e40-9811-4186-88d3-ef438b86deee",
+      "name": "Buscar Boletos V3",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -688,
+        -96
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "let boletos = $input.item.json.ContasReceber || $input.item.json || [];\nif (!Array.isArray(boletos)) {\n  if (boletos.DataVencimento) boletos = [boletos];\n  else boletos = [];\n}\n\nlet today = new Date();\nlet hasOver6Days = false;\nlet boletosParaEnviar = [];\n\nfor (let b of boletos) {\n    if (b.Situacao !== 0 && b.Situacao !== 'Aberto' && b.Situacao !== 'Pendente') continue;\n    let vencimentoStr = b.DataVencimento || b.dataVencimento;\n    if (!vencimentoStr) continue;\n    \n    let vencimento = new Date(vencimentoStr);\n    let diffTime = today - vencimento;\n    let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); \n    \n    if (diffDays >= 6) {\n        hasOver6Days = true;\n    } else {\n        boletosParaEnviar.push(b.LinhaDigitavel || b.linhaDigitavel || b.ContaReceberID || 'Boleto sem linha digitável mapeada');\n    }\n}\n\nlet message = \"VOCÊ ESTÁ EM DIA!\";\nif (hasOver6Days) {\n    message = \"entre em contato com: 0800 886 0663\";\n} else if (boletosParaEnviar.length > 0) {\n    message = \"Aqui estão seus boletos:\\n\" + boletosParaEnviar.join(\"\\n\\n\");\n}\n\nreturn [{ json: { message } }];"
+      },
+      "id": "cf2b401a-9d5e-4964-b527-46678b2dcc7a",
+      "name": "Processar Boletos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -496,
+        -96
+      ]
+    },
+    {
+      "parameters": {
+        "path": "4c3a3afa-2330-46b5-910a-068a6ee35db3",
+        "formTitle": "Segunda Via de Boleto - TESTE",
+        "formDescription": "Informe o CPF para consultar faturas em aberto",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "CPF",
+              "placeholder": "Somente números. Ex: 12345678901",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fa0ed097-9ffa-4a16-a4fa-790cfb12c1ed",
+      "name": "Formulário - CPF",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2,
+      "position": [
+        -2736,
+        -192
+      ],
+      "webhookId": "4c3a3afa-2330-46b5-910a-068a6ee35db3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://integracaopp.sponteweb.com.br/api/v3/Auth/login",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"email\": \"milenanogueira-itz-ma@hotmail.com\",\n  \"password\": \"vPT3KBftA28@Qo8X\",\n  \"codCliSponte\": 8371\n}\n",
+        "options": {}
+      },
+      "id": "0ac2e8d1-08c5-4ecc-8bf1-0b2e7f6a7251",
+      "name": "Login ",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1936,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { message: 'VOCÊ ESTÁ EM DIA!' } }];"
+      },
+      "id": "e0b1158a-a434-4a41-b8f2-8c9e0d16cf29",
+      "name": "Aluno Não Encontrado",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -688,
+        100
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Validar CPF": {
+      "main": [
+        [
+          {
+            "node": "Login ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Vars": {
+      "main": [
+        [
+          {
+            "node": "Buscar Aluno V1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Aluno V1": {
+      "main": [
+        [
+          {
+            "node": "Extrair AlunoID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extrair AlunoID": {
+      "main": [
+        [
+          {
+            "node": "Aluno Encontrado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aluno Encontrado?": {
+      "main": [
+        [
+          {
+            "node": "Buscar Boletos V3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Aluno Não Encontrado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Boletos V3": {
+      "main": [
+        [
+          {
+            "node": "Processar Boletos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formulário - CPF": {
+      "main": [
+        [
+          {
+            "node": "Validar CPF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Login ": {
+      "main": [
+        [
+          {
+            "node": "Preparar Vars",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "bf7b0aeb-831c-440b-bc8e-7be47a0141e4",
+  "meta": {
+    "instanceId": "8e9d845c8034c0b9373e372de19e6b98cbdd17fbbd5970d75811ffd362a80a03"
+  },
+  "id": "9gVuZxPUeeP9MDTM",
+  "tags": []
+}

@@ -1,0 +1,203 @@
+const fs = require('fs');
+
+let flow = {
+  "name": "Busca de Boletos SPONTE (Com RPA / Puppeteer)",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "be67a2ea-e273-42db-9a96-f38098766b35",
+        "formTitle": "Segunda Via de Boleto - TESTE",
+        "formDescription": "Informe o CPF ou Matrícula do ALUNO para consultar faturas em aberto",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "CPF",
+              "placeholder": "Somente números. Ex: 12345678901",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "trigger-form",
+      "name": "Formulário - CPF",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2,
+      "position": [0, 200],
+      "webhookId": "be67a2ea-e273-42db-9a96-f38098766b35"
+    },
+    {
+      "parameters": {
+        "jsCode": "const cpf = ($input.first().json['CPF'] || '').toString().replace(/\\D/g, '');\nif (cpf.length !== 11) throw new Error('CPF invǭlido: informe 11 dgitos. Recebido: ' + cpf);\nlet formattedCpf = cpf.replace(/(\\d{3})(\\d{3})(\\d{3})(\\d{2})/, \"$1.$2.$3-$4\");\nreturn [{ json: { cpf: formattedCpf } }];"
+      },
+      "id": "validar-cpf",
+      "name": "Validar CPF",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [200, 200]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://webservices.sponteweb.com.br/WSApiSponteRest/api/students?CPF=' + $('Validar CPF').first().json.cpf }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "api_key", "value": "87E821" },
+            { "name": "Accept", "value": "application/json" }
+          ]
+        },
+        "options": {
+          "ignoreResponseCode": true
+        }
+      },
+      "id": "buscar-8731",
+      "name": "Buscar Alunos 8731",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [400, 200]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://webservices.sponteweb.com.br/WSApiSponteRest/api/students?CPF=' + $('Validar CPF').first().json.cpf }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "api_key", "value": "0EA64A" },
+            { "name": "Accept", "value": "application/json" }
+          ]
+        },
+        "options": {
+          "ignoreResponseCode": true
+        }
+      },
+      "id": "buscar-70532",
+      "name": "Buscar Alunos 70532",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [600, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "let res8731 = $('Buscar Alunos 8731').first().json || {};\nlet res70532 = $('Buscar Alunos 70532').first().json || {};\n\nlet alunos8731 = res8731.value || res8731 || [];\nif (!Array.isArray(alunos8731)) alunos8731 = [alunos8731];\n\nlet alunos70532 = res70532.value || res70532 || [];\nif (!Array.isArray(alunos70532)) alunos70532 = [alunos70532];\n\nlet result = [];\nfor (let a of alunos8731) {\n    if (a.student_id) result.push({ json: { alunoId: a.student_id, escola_id: '8731', escola: 'CIA (8731)', nome: a.name, login: a.spontenet_username, senha: a.spontenet_password } });\n}\nfor (let a of alunos70532) {\n    if (a.student_id) result.push({ json: { alunoId: a.student_id, escola_id: '70532', escola: 'CIA KIDS (70532)', nome: a.name, login: a.spontenet_username, senha: a.spontenet_password } });\n}\n\nif (result.length === 0) return [{ json: { error: true } }];\nreturn result;"
+      },
+      "id": "agrupar-alunos",
+      "name": "Agrupar Alunos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [800, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cond-1",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals",
+                "name": "filter.operator.notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "achou-alunos",
+      "name": "Encontrou Alunos?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1000, 200]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'http://127.0.0.1:3000/extrair-boleto?cid=' + $json.escola_id + '&login=' + $json.login + '&senha=' + $json.senha }}",
+        "sendHeaders": false,
+        "options": {
+          "ignoreResponseCode": true
+        }
+      },
+      "id": "chamar-rpa",
+      "name": "Chamar Robô Puppeteer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1200, 100],
+      "notesInFlow": true,
+      "notes": "Aqui o n8n chama a sua mini-API"
+    },
+    {
+      "parameters": {
+        "jsCode": "let allItems = $input.all();\nlet mensagem = 'Aqui estão as informações extraídas pelo robô:\\n\\n';\n\nfor (let item of allItems) {\n    let RPA = item.json;\n    if (RPA.error) {\n        mensagem += `❌ Erro ao acessar boletos.\\n`;\n    } else {\n        mensagem += `✅ Sucesso! O robô acessou o portal.\\n`;\n        mensagem += JSON.stringify(RPA, null, 2);\n    }\n}\n\nreturn [{ json: { message: mensagem } }];"
+      },
+      "id": "processar-rpa",
+      "name": "Processar RPA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1400, 100]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "Nǜo encontramos nenhum aluno com esse CPF em nenhuma das nossas escolas."
+      },
+      "id": "resposta-nao-encontrado",
+      "name": "Nǜo Encontrado",
+      "type": "n8n-nodes-base.formResponse",
+      "typeVersion": 1,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.message }}"
+      },
+      "id": "resposta-boletos",
+      "name": "Retornar Boletos",
+      "type": "n8n-nodes-base.formResponse",
+      "typeVersion": 1,
+      "position": [1600, 100]
+    }
+  ],
+  "connections": {
+    "Formulário - CPF": {
+      "main": [ [ { "node": "Validar CPF", "type": "main", "index": 0 } ] ]
+    },
+    "Validar CPF": {
+      "main": [ [ { "node": "Buscar Alunos 8731", "type": "main", "index": 0 } ] ]
+    },
+    "Buscar Alunos 8731": {
+      "main": [ [ { "node": "Buscar Alunos 70532", "type": "main", "index": 0 } ] ]
+    },
+    "Buscar Alunos 70532": {
+      "main": [ [ { "node": "Agrupar Alunos", "type": "main", "index": 0 } ] ]
+    },
+    "Agrupar Alunos": {
+      "main": [ [ { "node": "Encontrou Alunos?", "type": "main", "index": 0 } ] ]
+    },
+    "Encontrou Alunos?": {
+      "main": [
+        [ { "node": "Chamar Robô Puppeteer", "type": "main", "index": 0 } ],
+        [ { "node": "Nǜo Encontrado", "type": "main", "index": 0 } ]
+      ]
+    },
+    "Chamar Robô Puppeteer": {
+      "main": [ [ { "node": "Processar RPA", "type": "main", "index": 0 } ] ]
+    },
+    "Processar RPA": {
+      "main": [ [ { "node": "Retornar Boletos", "type": "main", "index": 0 } ] ]
+    }
+  }
+};
+
+fs.writeFileSync('Busca de Boletos SPONTE_RPA.json', JSON.stringify(flow, null, 2));
