@@ -125,7 +125,7 @@ async function handleFormSubmit(e) {
     initGame();
     
     try {
-        const webhookUrl = 'https://n8n.amais.io/webhook/buscar-boletos-novo';
+        const webhookUrl = 'https://n8n.amais.io/webhook/dev-buscar-boletos';
         
         let data = null;
         let tentativas = 0;
