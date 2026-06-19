@@ -3,6 +3,22 @@ const puppeteer = require('puppeteer');
 
 const app = express();
 const port = process.env.PORT || 3000;
+app.use(express.json());
+
+const { runWithRetries } = require('./export_sponte.js');
+
+app.post('/iniciar-exportacao', (req, res) => {
+    const webhookUrl = req.body.webhookUrl || req.query.webhookUrl;
+    if (!webhookUrl) {
+        return res.status(400).json({ error: 'É necessário fornecer a webhookUrl no corpo (JSON) ou query params.' });
+    }
+    
+    // Responde imediatamente
+    res.json({ status: 'Processo de exportação iniciado em background!', webhookUrl });
+    
+    // Roda o Puppeteer em segundo plano
+    runWithRetries(webhookUrl).catch(e => console.error('Erro geral no robô:', e));
+});
 
 app.get('/extrair-boleto', async (req, res) => {
     const { cid, login, senha } = req.query;
