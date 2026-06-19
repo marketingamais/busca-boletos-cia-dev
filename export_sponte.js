@@ -58,6 +58,24 @@ async function exportarRelatorio(webhookUrl) {
             downloadPath: downloadPath
         });
 
+        // HACK: Se a Sponte abrir o download em uma nova guia/pop-up (ex: link do AWS S3), 
+        // precisamos garantir que a nova guia também baixe o arquivo na nossa pasta.
+        browser.on('targetcreated', async (target) => {
+            if (target.type() === 'page') {
+                try {
+                    const newPage = await target.page();
+                    if (newPage) {
+                        const newClient = await newPage.target().createCDPSession();
+                        await newClient.send('Page.setDownloadBehavior', {
+                            behavior: 'allow',
+                            downloadPath: downloadPath
+                        });
+                        console.log("Pop-up interceptado e configurado para download automático!");
+                    }
+                } catch(e) { }
+            }
+        });
+
         console.log("Acessando Sponte...");
         await page.goto('https://www.sponteweb.com.br/', { waitUntil: 'networkidle2', timeout: 60000 });
 
@@ -95,11 +113,15 @@ async function exportarRelatorio(webhookUrl) {
                 for(let i=0; i<comboExport.options.length; i++) {
                     if(comboExport.options[i].text.toLowerCase().includes('excel tabulado') || comboExport.options[i].text.toLowerCase().includes('xls')) {
                         comboExport.selectedIndex = i;
+                        comboExport.dispatchEvent(new Event('change', { bubbles: true }));
                         break;
                     }
                 }
             }
         });
+
+        console.log("Aguardando 5 segundos para a Sponte processar a escolha de formato...");
+        await new Promise(r => setTimeout(r, 5000));
 
         console.log("Clicando em Visualizar / Emitir e aguardando download (Timeout 30 min)...");
         await page.evaluate(() => {
