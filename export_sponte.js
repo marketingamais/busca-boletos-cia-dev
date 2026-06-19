@@ -90,54 +90,91 @@ async function exportarRelatorio(webhookUrl) {
         
         console.log(`Período configurado: ${startDateStr} até ${endDateStr}`);
         
-        await page.evaluate((start, end) => {
-            const elStart = document.querySelector('input[name*="VencimentoIni"], input[id*="VencimentoIni"], input[id*="DataInicial"]');
-            const elEnd = document.querySelector('input[name*="VencimentoFim"], input[id*="VencimentoFim"], input[id*="DataFinal"]');
-            if(elStart) elStart.value = start;
-            if(elEnd) elEnd.value = end;
-        }, startDateStr, endDateStr);
+        for (const frame of page.frames()) {
+            await frame.evaluate((start, end) => {
+                const inputs = Array.from(document.querySelectorAll('input[type="text"], input[type="date"], input[type="tel"]'));
+                for (const input of inputs) {
+                    const idName = (input.id + input.name).toLowerCase();
+                    if(idName.includes('vencimentoini') || idName.includes('datainicial')) input.value = start;
+                    if(idName.includes('vencimentofim') || idName.includes('datafinal')) input.value = end;
+                }
+            }, startDateStr, endDateStr);
+        }
 
         console.log("Configurando exportação para Excel...");
-        const formatChanged = await page.evaluate(() => {
-            const chkExport = document.querySelector('input[id*="chkExportarPara"], input[name*="ExportarPara"]');
-            if(chkExport && !chkExport.checked) chkExport.click();
-            
-            let changed = false;
-            const comboExport = document.querySelector('select[id*="ddlExportarPara"], select[name*="ExportarPara"]');
-            if(comboExport) {
-                for(let i=0; i<comboExport.options.length; i++) {
-                    if(comboExport.options[i].text.toLowerCase().includes('excel tabulado') || comboExport.options[i].text.toLowerCase().includes('xls')) {
-                        if(comboExport.selectedIndex !== i) {
-                            comboExport.selectedIndex = i;
-                            comboExport.dispatchEvent(new Event('change', { bubbles: true }));
-                            changed = true;
-                        }
+        let formatChanged = false;
+        
+        for (const frame of page.frames()) {
+            const changed = await frame.evaluate(() => {
+                let localChanged = false;
+                
+                // 1. Marcar a Checkbox de Exportar
+                const checkboxes = Array.from(document.querySelectorAll('input[type="checkbox"]'));
+                for (const chk of checkboxes) {
+                    const idName = (chk.id + chk.name).toLowerCase();
+                    const parentText = chk.parentElement ? chk.parentElement.textContent.toLowerCase() : '';
+                    if (idName.includes('export') || parentText.includes('exportar')) {
+                        if (!chk.checked) chk.click();
                         break;
                     }
                 }
-            }
-            return changed;
-        });
+
+                // 2. Selecionar Excel no Combobox
+                const selects = Array.from(document.querySelectorAll('select'));
+                for (const sel of selects) {
+                    let targetIndex = -1;
+                    for (let i = 0; i < sel.options.length; i++) {
+                        const optText = sel.options[i].text.toLowerCase();
+                        if (optText.includes('excel tabulado') || optText.includes('xls') || optText.includes('excel')) {
+                            targetIndex = i;
+                            break;
+                        }
+                    }
+                    if (targetIndex !== -1) {
+                        if (sel.selectedIndex !== targetIndex) {
+                            sel.selectedIndex = targetIndex;
+                            sel.dispatchEvent(new Event('change', { bubbles: true }));
+                            localChanged = true;
+                        }
+                        break; // Se achou um combo com excel, não precisa olhar os outros
+                    }
+                }
+                return localChanged;
+            });
+            if (changed) formatChanged = true;
+        }
 
         if (formatChanged) {
             console.log("Aguardando a Sponte processar a escolha (Network Idle)...");
             try {
-                // Espera inteligente: aguarda até a rede do navegador ficar calma (sem requisições) 
-                // por pelo menos 1 segundo, respeitando o tempo real da Sponte.
                 await page.waitForNetworkIdle({ idleTime: 1000, timeout: 30000 });
             } catch (e) {
                 console.log("Aviso: Tempo limite de rede atingido na espera do combo, seguindo em frente...");
             }
-            // Margem extra mínima para a interface reagir após o carregamento da rede
             await new Promise(r => setTimeout(r, 1000));
         }
 
         console.log("Clicando em Visualizar / Emitir e aguardando download (Timeout 30 min)...");
-        const btnHandle = await page.$('input[id*="btnVisualizar"], input[id*="btnEmitir"], a[id*="btnVisualizar"]');
+        
+        let btnHandle = null;
+        for (const frame of page.frames()) {
+            // Busca todos os elementos clicáveis que parecem botões
+            const elements = await frame.$$('input[type="button"], input[type="submit"], button, a');
+            for (const el of elements) {
+                const text = await frame.evaluate(x => (x.value || x.innerText || x.textContent || x.title || '').toUpperCase(), el);
+                if (text.includes('VISUALIZAR') || text.includes('EMITIR') || text.includes('GERAR') || text.includes('EXPORTAR')) {
+                    btnHandle = el;
+                    break;
+                }
+            }
+            if (btnHandle) break; // Se achou em algum frame, para de procurar
+        }
+
         if (btnHandle) {
             await btnHandle.click(); // Clique confiável do Puppeteer (Evita bloqueio de Pop-up)
+            console.log("Botão clicado com sucesso!");
         } else {
-            console.log("ALERTA: Botão de Visualizar não encontrado!");
+            console.log("ALERTA: Botão de Visualizar não encontrado em nenhum frame da tela!");
         }
 
         let filePath = null;
