@@ -28,11 +28,29 @@ async function exportarRelatorio(webhookUrl) {
 
     const browser = await puppeteer.launch({ 
         headless: 'new',
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+        args: [
+            '--no-sandbox', 
+            '--disable-setuid-sandbox', 
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--disable-gpu'
+        ]
     });
     
     try {
         const page = await browser.newPage();
+        
+        // Otimização agressiva de memória: Bloquear imagens, CSS e fontes
+        await page.setRequestInterception(true);
+        page.on('request', (req) => {
+            if(['image', 'stylesheet', 'font', 'media'].includes(req.resourceType())){
+                req.abort();
+            } else {
+                req.continue();
+            }
+        });
         
         const client = await page.target().createCDPSession();
         await client.send('Page.setDownloadBehavior', {
