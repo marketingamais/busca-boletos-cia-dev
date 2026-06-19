@@ -93,10 +93,31 @@ async function exportarRelatorio(webhookUrl) {
         for (const frame of page.frames()) {
             await frame.evaluate((start, end) => {
                 const inputs = Array.from(document.querySelectorAll('input[type="text"], input[type="date"], input[type="tel"]'));
-                for (const input of inputs) {
-                    const idName = (input.id + input.name).toLowerCase();
-                    if(idName.includes('vencimentoini') || idName.includes('datainicial')) input.value = start;
-                    if(idName.includes('vencimentofim') || idName.includes('datafinal')) input.value = end;
+                
+                // Encontrar os inputs de Vencimento
+                let ini = inputs.find(inp => {
+                    const str = (inp.id + inp.name).toLowerCase();
+                    return str.includes('vencimento') && (str.includes('ini') || str.includes('de'));
+                });
+                let fim = inputs.find(inp => {
+                    const str = (inp.id + inp.name).toLowerCase();
+                    return str.includes('vencimento') && (str.includes('fim') || str.includes('ate'));
+                });
+
+                if (ini && fim) {
+                    ini.value = start;
+                    fim.value = end;
+                } else {
+                    // Fallback: Se não achar pelos sufixos (ini/fim), tenta pegar os dois primeiros 
+                    // inputs de data que aparecem na tela (que visualmente são os de Vencimento)
+                    const dateInputs = inputs.filter(inp => {
+                        const str = (inp.id + inp.name).toLowerCase();
+                        return str.includes('vencimento') || str.includes('data');
+                    });
+                    if (dateInputs.length >= 2) {
+                        dateInputs[0].value = start;
+                        dateInputs[1].value = end;
+                    }
                 }
             }, startDateStr, endDateStr);
         }
