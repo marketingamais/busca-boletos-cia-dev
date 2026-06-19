@@ -154,14 +154,20 @@ async function exportarRelatorio(webhookUrl) {
             const changed = await frame.evaluate(() => {
                 let localChanged = false;
                 
-                // 1. Marcar a Checkbox de Exportar
+                // 1. Marcar a Checkbox de Exportar e de Layout Fixo
                 const checkboxes = Array.from(document.querySelectorAll('input[type="checkbox"]'));
                 for (const chk of checkboxes) {
                     const idName = (chk.id + chk.name).toLowerCase();
                     const parentText = chk.parentElement ? chk.parentElement.textContent.toLowerCase() : '';
+                    
+                    // Checa Exportar
                     if (idName.includes('export') || parentText.includes('exportar')) {
                         if (!chk.checked) chk.click();
-                        break;
+                    }
+                    
+                    // Checa Exibir detalhes (Layout Fixo)
+                    if (idName.includes('fixo') || parentText.includes('layout fixo') || parentText.includes('detalhes do recebimento')) {
+                        if (!chk.checked) chk.click();
                     }
                 }
 
