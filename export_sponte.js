@@ -35,22 +35,15 @@ async function exportarRelatorio(webhookUrl) {
             '--disable-accelerated-2d-canvas',
             '--no-first-run',
             '--no-zygote',
-            '--disable-gpu'
+            '--disable-gpu',
+            '--disable-popup-blocking'
         ]
     });
     
     try {
         const page = await browser.newPage();
         
-        // Otimização agressiva de memória: Bloquear imagens e fontes (mas mantendo CSS/stylesheet para não quebrar a Sponte!)
-        await page.setRequestInterception(true);
-        page.on('request', (req) => {
-            if(['image', 'font', 'media'].includes(req.resourceType())){
-                req.abort();
-            } else {
-                req.continue();
-            }
-        });
+        // Interceptação de imagens removida para evitar qualquer chance de quebra na Sponte.
         
         const client = await page.target().createCDPSession();
         await client.send('Page.setDownloadBehavior', {
@@ -61,7 +54,8 @@ async function exportarRelatorio(webhookUrl) {
         // HACK: Se a Sponte abrir o download em uma nova guia/pop-up (ex: link do AWS S3), 
         // precisamos garantir que a nova guia também baixe o arquivo na nossa pasta.
         browser.on('targetcreated', async (target) => {
-            if (target.type() === 'page') {
+            console.log("Pop-up/Nova aba detectada na URL: " + target.url());
+            if (target.type() === 'page' || target.type() === 'other') {
                 try {
                     const newPage = await target.page();
                     if (newPage) {
@@ -70,7 +64,7 @@ async function exportarRelatorio(webhookUrl) {
                             behavior: 'allow',
                             downloadPath: downloadPath
                         });
-                        console.log("Pop-up interceptado e configurado para download automático!");
+                        console.log("Pop-up configurado para download automático!");
                     }
                 } catch(e) { }
             }
@@ -139,10 +133,12 @@ async function exportarRelatorio(webhookUrl) {
         }
 
         console.log("Clicando em Visualizar / Emitir e aguardando download (Timeout 30 min)...");
-        await page.evaluate(() => {
-            const btn = document.querySelector('input[id*="btnVisualizar"], input[id*="btnEmitir"], a[id*="btnVisualizar"]');
-            if(btn) btn.click();
-        });
+        const btnHandle = await page.$('input[id*="btnVisualizar"], input[id*="btnEmitir"], a[id*="btnVisualizar"]');
+        if (btnHandle) {
+            await btnHandle.click(); // Clique confiável do Puppeteer (Evita bloqueio de Pop-up)
+        } else {
+            console.log("ALERTA: Botão de Visualizar não encontrado!");
+        }
 
         let filePath = null;
         let attempts = 0;
