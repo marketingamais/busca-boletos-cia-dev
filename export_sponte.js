@@ -169,25 +169,26 @@ async function exportarRelatorio(webhookUrl) {
                         if (!chk.checked) chk.click();
                         localChanged = true;
                     }
-                    
-                    // Checa Exibir detalhes (Layout Fixo)
-                    if (idName.includes('fixo') || idName.includes('detalhes') || fullTextContext.includes('layout fixo') || fullTextContext.includes('detalhes do recebimento')) {
-                        if (!chk.checked) chk.click();
-                        localChanged = true;
-                    }
                 }
                 
-                // HACK extra para Layout Fixo (busca por Labels caso não esteja no parent Node do checkbox)
-                const labels = Array.from(document.querySelectorAll('label'));
-                for (const lbl of labels) {
-                    const txt = lbl.textContent.toLowerCase();
-                    if (txt.includes('layout fixo') || txt.includes('detalhes do recebimento')) {
-                        const chkId = lbl.getAttribute('for');
-                        if (chkId) {
-                            const chk = document.getElementById(chkId);
-                            if (chk && !chk.checked) chk.click();
-                        } else {
-                            lbl.click(); // Às vezes a própria label marca a caixinha
+                // BRUTE FORCE para Layout Fixo: varrer todos os textos da tela
+                const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+                let textNode;
+                while(textNode = walk.nextNode()) {
+                    const txt = textNode.nodeValue.toLowerCase();
+                    if(txt.includes('layout fixo') || txt.includes('detalhes do recebimento')) {
+                        let parent = textNode.parentElement;
+                        let chk = parent.querySelector('input[type="checkbox"]');
+                        if(!chk && parent.previousElementSibling && parent.previousElementSibling.type === 'checkbox') chk = parent.previousElementSibling;
+                        if(!chk && parent.parentElement) chk = parent.parentElement.querySelector('input[type="checkbox"]');
+                        if(!chk && parent.parentElement && parent.parentElement.parentElement) chk = parent.parentElement.parentElement.querySelector('input[type="checkbox"]');
+                        
+                        if(chk && !chk.checked) {
+                            chk.click();
+                            localChanged = true;
+                        } else if (!chk) {
+                            parent.click(); // Clica no texto como fallback
+                            localChanged = true;
                         }
                     }
                 }
