@@ -159,15 +159,36 @@ async function exportarRelatorio(webhookUrl) {
                 for (const chk of checkboxes) {
                     const idName = (chk.id + chk.name).toLowerCase();
                     const parentText = chk.parentElement ? chk.parentElement.textContent.toLowerCase() : '';
+                    const nextText = chk.nextSibling && chk.nextSibling.textContent ? chk.nextSibling.textContent.toLowerCase() : '';
+                    const nextElemText = chk.nextElementSibling ? chk.nextElementSibling.textContent.toLowerCase() : '';
+                    
+                    const fullTextContext = parentText + " " + nextText + " " + nextElemText;
                     
                     // Checa Exportar
-                    if (idName.includes('export') || parentText.includes('exportar')) {
+                    if (idName.includes('export') || fullTextContext.includes('exportar')) {
                         if (!chk.checked) chk.click();
+                        localChanged = true;
                     }
                     
                     // Checa Exibir detalhes (Layout Fixo)
-                    if (idName.includes('fixo') || parentText.includes('layout fixo') || parentText.includes('detalhes do recebimento')) {
+                    if (idName.includes('fixo') || idName.includes('detalhes') || fullTextContext.includes('layout fixo') || fullTextContext.includes('detalhes do recebimento')) {
                         if (!chk.checked) chk.click();
+                        localChanged = true;
+                    }
+                }
+                
+                // HACK extra para Layout Fixo (busca por Labels caso não esteja no parent Node do checkbox)
+                const labels = Array.from(document.querySelectorAll('label'));
+                for (const lbl of labels) {
+                    const txt = lbl.textContent.toLowerCase();
+                    if (txt.includes('layout fixo') || txt.includes('detalhes do recebimento')) {
+                        const chkId = lbl.getAttribute('for');
+                        if (chkId) {
+                            const chk = document.getElementById(chkId);
+                            if (chk && !chk.checked) chk.click();
+                        } else {
+                            lbl.click(); // Às vezes a própria label marca a caixinha
+                        }
                     }
                 }
 
