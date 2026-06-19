@@ -42,10 +42,10 @@ async function exportarRelatorio(webhookUrl) {
     try {
         const page = await browser.newPage();
         
-        // Otimização agressiva de memória: Bloquear imagens, CSS e fontes
+        // Otimização agressiva de memória: Bloquear imagens e fontes (mas mantendo CSS/stylesheet para não quebrar a Sponte!)
         await page.setRequestInterception(true);
         page.on('request', (req) => {
-            if(['image', 'stylesheet', 'font', 'media'].includes(req.resourceType())){
+            if(['image', 'font', 'media'].includes(req.resourceType())){
                 req.abort();
             } else {
                 req.continue();
