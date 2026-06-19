@@ -5,6 +5,8 @@ const app = express();
 const port = process.env.PORT || 3000;
 app.use(express.json());
 
+app.get('/ping', (req, res) => res.send('pong'));
+
 const { runWithRetries } = require('./export_sponte.js');
 
 app.post('/iniciar-exportacao', (req, res) => {
