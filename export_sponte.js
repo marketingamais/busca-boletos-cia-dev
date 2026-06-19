@@ -151,7 +151,7 @@ async function exportarRelatorio(webhookUrl) {
         let formatChanged = false;
         
         for (const frame of page.frames()) {
-            const changed = await frame.evaluate(() => {
+            const changed = await frame.evaluate(async () => {
                 let localChanged = false;
                 
                 // 1. Marcar a Checkbox de Exportar e de Layout Fixo
@@ -193,24 +193,41 @@ async function exportarRelatorio(webhookUrl) {
                     }
                 }
 
+                // Dar um tempo para a Sponte desocultar o select do Excel
+                await new Promise(r => setTimeout(r, 1000));
+
                 // 2. Selecionar Excel no Combobox
                 const selects = Array.from(document.querySelectorAll('select'));
                 for (const sel of selects) {
                     let targetIndex = -1;
+                    
+                    // Prioridade 1: Tenta achar exatamente o 'excel tabulado'
                     for (let i = 0; i < sel.options.length; i++) {
-                        const optText = sel.options[i].text.toLowerCase();
-                        if (optText.includes('excel tabulado') || optText.includes('xls') || optText.includes('excel')) {
+                        if (sel.options[i].text.toLowerCase().includes('excel tabulado')) {
                             targetIndex = i;
                             break;
                         }
                     }
+                    
+                    // Prioridade 2: Se não achar, pega qualquer 'excel' ou 'xls' genérico
+                    if (targetIndex === -1) {
+                        for (let i = 0; i < sel.options.length; i++) {
+                            const optText = sel.options[i].text.toLowerCase();
+                            if (optText.includes('xls') || optText.includes('excel')) {
+                                targetIndex = i;
+                                break;
+                            }
+                        }
+                    }
+
                     if (targetIndex !== -1) {
                         if (sel.selectedIndex !== targetIndex) {
                             sel.selectedIndex = targetIndex;
+                            sel.value = sel.options[targetIndex].value; // Força o value também
                             sel.dispatchEvent(new Event('change', { bubbles: true }));
                             localChanged = true;
                         }
-                        break; // Se achou um combo com excel, não precisa olhar os outros
+                        break; 
                     }
                 }
                 return localChanged;
