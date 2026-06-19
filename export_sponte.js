@@ -84,6 +84,31 @@ async function exportarRelatorio(webhookUrl) {
         console.log("Navegando para Contas a Receber...");
         await page.goto('https://www.sponteweb.com.br/SPRel/Financeiro/ContasReceber.aspx', { waitUntil: 'networkidle2', timeout: 60000 });
 
+        console.log("Aguardando carregamento completo do iframe/tela (procurando palavras-chave)...");
+        let isScreenReady = false;
+        let waitAttempts = 0;
+        while (!isScreenReady && waitAttempts < 30) { // Espera até 30 segundos
+            await new Promise(r => setTimeout(r, 1000));
+            for (const frame of page.frames()) {
+                const found = await frame.evaluate(() => {
+                    const textContent = document.body ? document.body.innerText.toUpperCase() : '';
+                    return textContent.includes('EXPORTAR') || textContent.includes('VISUALIZAR') || textContent.includes('VENCIMENTO');
+                });
+                if (found) {
+                    isScreenReady = true;
+                    break;
+                }
+            }
+            waitAttempts++;
+            if(waitAttempts % 5 === 0 && !isScreenReady) console.log(`Ainda aguardando a tela desenhar... ${waitAttempts} segs`);
+        }
+        
+        if (!isScreenReady) {
+            console.log("ALERTA: A tela de Contas a Receber parece estar em branco ou demorou mais de 30s para carregar!");
+        } else {
+            console.log("Tela e iframes renderizados com sucesso!");
+        }
+
         const currentYear = new Date().getFullYear();
         const startDateStr = `01/01/${currentYear}`;
         const endDateStr = formatDateBR(getLastDayOfNextMonth());
@@ -179,10 +204,11 @@ async function exportarRelatorio(webhookUrl) {
         
         let btnHandle = null;
         for (const frame of page.frames()) {
-            // Busca todos os elementos clicáveis que parecem botões
-            const elements = await frame.$$('input[type="button"], input[type="submit"], button, a');
+            // Busca todos os elementos clicáveis que parecem botões, incluindo inputs de imagem e divs/spans
+            const elements = await frame.$$('input[type="button"], input[type="submit"], input[type="image"], button, a, div[class*="btn"], span[class*="btn"]');
             for (const el of elements) {
-                const text = await frame.evaluate(x => (x.value || x.innerText || x.textContent || x.title || '').toUpperCase(), el);
+                // Checa textos e atributos de imagem (alt/title)
+                const text = await frame.evaluate(x => (x.value || x.innerText || x.textContent || x.title || x.alt || '').toUpperCase(), el);
                 
                 // Medida de segurança: Garante que o botão tem tamanho na tela e não está invisível
                 const isVisible = await frame.evaluate(x => {
