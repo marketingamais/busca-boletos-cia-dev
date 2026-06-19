@@ -183,7 +183,15 @@ async function exportarRelatorio(webhookUrl) {
             const elements = await frame.$$('input[type="button"], input[type="submit"], button, a');
             for (const el of elements) {
                 const text = await frame.evaluate(x => (x.value || x.innerText || x.textContent || x.title || '').toUpperCase(), el);
-                if (text.includes('VISUALIZAR') || text.includes('EMITIR') || text.includes('GERAR') || text.includes('EXPORTAR')) {
+                
+                // Medida de segurança: Garante que o botão tem tamanho na tela e não está invisível
+                const isVisible = await frame.evaluate(x => {
+                    const rect = x.getBoundingClientRect();
+                    const style = window.getComputedStyle(x);
+                    return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+                }, el);
+
+                if (isVisible && (text.includes('VISUALIZAR') || text.includes('EMITIR') || text.includes('GERAR') || text.includes('EXPORTAR'))) {
                     btnHandle = el;
                     break;
                 }
