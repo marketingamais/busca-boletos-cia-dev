@@ -104,24 +104,39 @@ async function exportarRelatorio(webhookUrl) {
         }, startDateStr, endDateStr);
 
         console.log("Configurando exportação para Excel...");
-        await page.evaluate(() => {
+        const formatChanged = await page.evaluate(() => {
             const chkExport = document.querySelector('input[id*="chkExportarPara"], input[name*="ExportarPara"]');
             if(chkExport && !chkExport.checked) chkExport.click();
             
+            let changed = false;
             const comboExport = document.querySelector('select[id*="ddlExportarPara"], select[name*="ExportarPara"]');
             if(comboExport) {
                 for(let i=0; i<comboExport.options.length; i++) {
                     if(comboExport.options[i].text.toLowerCase().includes('excel tabulado') || comboExport.options[i].text.toLowerCase().includes('xls')) {
-                        comboExport.selectedIndex = i;
-                        comboExport.dispatchEvent(new Event('change', { bubbles: true }));
+                        if(comboExport.selectedIndex !== i) {
+                            comboExport.selectedIndex = i;
+                            comboExport.dispatchEvent(new Event('change', { bubbles: true }));
+                            changed = true;
+                        }
                         break;
                     }
                 }
             }
+            return changed;
         });
 
-        console.log("Aguardando 5 segundos para a Sponte processar a escolha de formato...");
-        await new Promise(r => setTimeout(r, 5000));
+        if (formatChanged) {
+            console.log("Aguardando a Sponte processar a escolha (Network Idle)...");
+            try {
+                // Espera inteligente: aguarda até a rede do navegador ficar calma (sem requisições) 
+                // por pelo menos 1 segundo, respeitando o tempo real da Sponte.
+                await page.waitForNetworkIdle({ idleTime: 1000, timeout: 30000 });
+            } catch (e) {
+                console.log("Aviso: Tempo limite de rede atingido na espera do combo, seguindo em frente...");
+            }
+            // Margem extra mínima para a interface reagir após o carregamento da rede
+            await new Promise(r => setTimeout(r, 1000));
+        }
 
         console.log("Clicando em Visualizar / Emitir e aguardando download (Timeout 30 min)...");
         await page.evaluate(() => {
