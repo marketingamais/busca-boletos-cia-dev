@@ -155,10 +155,10 @@ app.get('/extrair-boleto', async (req, res) => {
                     let diasAtraso = 0;
                     let isVencida = false;
                     
-                    const isVencidaOrPendente = title.toLowerCase().includes('vencida') || title.toLowerCase().includes('pendente') || src.toLowerCase().includes('vencida') || src.toLowerCase().includes('pendente');
+                    const isVencidaOrPendente = title.toLowerCase().includes('vencid') || title.toLowerCase().includes('pendente') || src.toLowerCase().includes('vencid') || src.toLowerCase().includes('pendente');
                     
                     if (img && isVencidaOrPendente) {
-                        if (title.toLowerCase().includes('vencida a')) {
+                        if (title.toLowerCase().includes('vencid')) {
                             isVencida = true;
                             const match = title.match(/\d+/);
                             if (match) diasAtraso = parseInt(match[0], 10);
@@ -166,8 +166,12 @@ app.get('/extrair-boleto', async (req, res) => {
                         if (dataVencimento && dataVencimento.includes('/')) {
                             const [dia, mes, ano] = dataVencimento.split('/');
                             const dtVenc = new Date(ano, mes - 1, dia);
-                            const hoje = new Date();
+                            
+                            // Força o horário do Brasil (America/Sao_Paulo)
+                            const strBR = new Date().toLocaleString("en-US", {timeZone: "America/Sao_Paulo"});
+                            const hoje = new Date(strBR);
                             hoje.setHours(0,0,0,0);
+                            
                             const diff = hoje - dtVenc;
                             const diasDiff = Math.floor(diff / (1000 * 60 * 60 * 24));
                             if (diasDiff > 0) {
