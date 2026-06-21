@@ -195,6 +195,25 @@ app.get('/extrair-boleto', async (req, res) => {
                 return res.json({ status: 'em_dia', message: 'Nenhuma parcela pendente encontrada.' });
             }
 
+            // FILTRO ANTI-FANTASMAS (Sponte Bug)
+            // Se o sistema encontrar duas parcelas com a exata mesma data de vencimento,
+            // ele compara o número da parcela e mantém apenas a mais nova (ex: ignora a 9 e mantém a 11).
+            let parcelasUnicas = new Map();
+            for (let p of parcelas) {
+                let chave = p.dataVencimento;
+                if (!parcelasUnicas.has(chave)) {
+                    parcelasUnicas.set(chave, p);
+                } else {
+                    let existente = parcelasUnicas.get(chave);
+                    let pNum = parseInt(p.numParcela) || 0;
+                    let exNum = parseInt(existente.numParcela) || 0;
+                    if (pNum > exNum) {
+                        parcelasUnicas.set(chave, p);
+                    }
+                }
+            }
+            parcelas = Array.from(parcelasUnicas.values());
+
             const atrasadas = parcelas.filter(p => p.isVencida);
             const maxAtraso = atrasadas.length > 0 ? Math.max(...atrasadas.map(p => p.diasAtraso)) : 0;
 
